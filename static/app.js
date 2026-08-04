@@ -40,7 +40,14 @@ function addMessage(role, text) {
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
-  bubble.textContent = text;
+
+  if (role === "assistant") {
+    // les réponses du modèle arrivent en Markdown -> rendu via md.js
+    bubble.classList.add("markdown");
+    bubble.innerHTML = renderMarkdown(text);
+  } else {
+    bubble.textContent = text;
+  }
 
   const meta = document.createElement("span");
   meta.className = "meta";
@@ -140,6 +147,22 @@ input.addEventListener("input", autoGrow);
 
 document.querySelectorAll(".suggestion").forEach((btn) => {
   btn.addEventListener("click", () => send(btn.textContent.trim()));
+});
+
+// bouton "Copier" des blocs de code (délégation : ils sont créés à la volée)
+chat.addEventListener("click", (e) => {
+  const btn = e.target.closest(".code-copy");
+  if (!btn) return;
+
+  const code = btn.closest(".code-block").querySelector("code").textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = "Copié !";
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.textContent = "Copier";
+      btn.classList.remove("copied");
+    }, 1500);
+  });
 });
 
 const welcomeTemplate = welcome.cloneNode(true);
