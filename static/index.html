@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chat IA — NVIDIA</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+
+  <div class="app">
+
+    <header class="header">
+      <button id="clear-btn" class="ghost-btn" type="button">Nouvelle conversation</button>
+    </header>
+
+    <main id="chat" class="chat" aria-live="polite">
+
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">✦</div>
+        <h2>Comment puis-je vous aider ?</h2>
+        <p>Posez une question, l'assistant répond en temps réel.</p>
+        <div class="suggestions">
+          <button class="suggestion" type="button">Résume-moi ce texte</button>
+          <button class="suggestion" type="button">Écris un email de relance</button>
+          <button class="suggestion" type="button">Explique-moi le RAG simplement</button>
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="composer-wrap">
+      <form id="composer" class="composer">
+        <textarea
+          id="input"
+          class="composer-input"
+          rows="1"
+          placeholder="Écrivez votre message…"
+          autocomplete="off"></textarea>
+        <button id="send-btn" class="send-btn" type="submit" aria-label="Envoyer">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path d="M3.4 20.4 21 12 3.4 3.6 3.4 10.2 15.6 12 3.4 13.8z" fill="currentColor"/>
+          </svg>
+        </button>
+      </form>
+      <p class="disclaimer">L'assistant peut se tromper. Vérifiez les informations importantes.</p>
+    </footer>
+
+  </div>
+
+</body>
+</html>

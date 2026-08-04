@@ -1,20 +1,27 @@
-import os
-import sys
-from dotenv import load_dotenv
-from langchain_nvidia_ai_endpoints import ChatNVIDIA
+from model import llm
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
-sys.stdout.reconfigure(encoding="utf-8")
-load_dotenv()
 
-client = ChatNVIDIA(
-    model="z-ai/glm-5.2",
-    api_key=os.getenv("NVIDIA_API_KEY"),
-    temperature=1,
-    top_p=1,
-    max_completion_tokens=16384,
-    seed=42,
-    timeout=180,
-)
+#convesation + history 
 
-for chunk in client.stream([{"content": "Bonjour, présente-toi en une phrase.", "role": "user"}]):
-    print(chunk.content, end="")
+history = [SystemMessage(content="Tu es un assistant utile et concis.")]
+
+print("Chat NVIDIA — tape 'exit' ou 'quit' pour quitter.\n")
+
+while True:
+    user_input = input().strip()
+    if user_input.lower() in {"exit", "quit"}:
+        break
+    if not user_input:
+        continue
+
+    history.append(HumanMessage(content=user_input))
+
+    print("IA: ", end="")
+    response = ""
+    for chunk in llm.stream(history):
+        print(chunk.content, end="")
+        response += chunk.content
+    print("\n")
+
+    history.append(AIMessage(content=response))
