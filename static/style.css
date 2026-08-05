@@ -345,6 +345,28 @@ body {
   font-weight: 600;
 }
 
+/* curseur clignotant pendant la génération */
+.bubble.streaming > :last-child::after {
+  content: "▌";
+  color: var(--accent);
+  margin-left: 2px;
+  animation: caret 1s steps(1) infinite;
+}
+
+@keyframes caret {
+  0%, 50%   { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
+/* flux interrompu en cours de réponse */
+.stream-error {
+  margin: 10px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 107, 107, 0.3);
+  color: var(--danger);
+  font-size: 13px;
+}
+
 .bubble-error {
   background: rgba(255, 107, 107, 0.1) !important;
   border-color: rgba(255, 107, 107, 0.35) !important;

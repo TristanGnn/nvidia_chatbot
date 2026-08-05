@@ -99,27 +99,73 @@ async function send(text) {
   setBusy(true);
 
   const typing = addTyping();
+  let bubble = null;      // créée au premier fragment reçu
+  let full = "";
+  let lastPaint = 0;
+
+  // md.js tolère un bloc de code encore ouvert : rien à assainir avant le rendu
+  const paint = () => {
+    bubble.innerHTML = renderMarkdown(full);
+    scrollToBottom();
+    lastPaint = performance.now();
+  };
 
   try {
-    const res = await fetch("/api/chat", {
+    const res = await fetch("/api/chat/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text, history: history })
     });
 
     if (!res.ok) throw new Error("HTTP " + res.status);
+    if (!res.body) throw new Error("flux non supporté par ce navigateur");
 
-    const data = await res.json();
-    const reply = data.reply ?? data.response ?? data.content ?? "";
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
 
-    typing.remove();
-    addMessage("assistant", reply || "(réponse vide)");
-    history.push({ role: "assistant", content: reply });
+    while (true) {
+      const { value, done } = await reader.read();
+      // stream: true -> gère les caractères accentués coupés entre deux paquets
+      const piece = done ? decoder.decode() : decoder.decode(value, { stream: true });
+
+      if (piece) {
+        if (!bubble) {                       // premier fragment : les points cèdent la place
+          typing.remove();
+          bubble = addMessage("assistant", "");
+          bubble.classList.add("streaming");
+        }
+        full += piece;
+        // on ne re-parse pas le Markdown à chaque token, ~20 fois/seconde suffit
+        if (performance.now() - lastPaint > 50) paint();
+      }
+
+      if (done) break;
+    }
+
+    if (!bubble) {
+      typing.remove();
+      bubble = addMessage("assistant", "(réponse vide)");
+    } else {
+      paint();                               // rendu final, complet
+      bubble.classList.remove("streaming");
+    }
+
+    history.push({ role: "assistant", content: full });
 
   } catch (err) {
-    typing.remove();
-    const bubble = addMessage("assistant", "Impossible de joindre l'assistant : " + err.message);
-    bubble.classList.add("bubble-error");
+    const message = "Impossible de joindre l'assistant : " + err.message;
+
+    if (bubble) {
+      // une réponse partielle est déjà affichée : on la garde et on signale la coupure
+      bubble.classList.remove("streaming");
+      const note = document.createElement("p");
+      note.className = "stream-error";
+      note.textContent = message;
+      bubble.appendChild(note);
+    } else {
+      typing.remove();
+      addMessage("assistant", message).classList.add("bubble-error");
+    }
   } finally {
     setBusy(false);
   }
